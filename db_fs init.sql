@@ -4,7 +4,7 @@ USE DATABASE db_fs;
 
 CREATE TABLE path
 (
-	partition_key CHAR(64) NOT NULL PRIMARY KEY,
+	partition_key CHAR(64) NOT NULL,
 	folder_name VARCHAR(255),
 	bytes BIGINT,
 	PRIMARY KEY(partition_key, folder_name)
