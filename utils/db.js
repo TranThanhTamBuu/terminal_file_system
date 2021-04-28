@@ -1,5 +1,5 @@
 const mysql = require('mysql2/promise');
-const mysql_opts = require('../config/default.json').mysql;
+const mysql_opts = require('../config/default.json').mysql_cloud;
 
 const pool = mysql.createPool(mysql_opts);
 

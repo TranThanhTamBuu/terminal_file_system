@@ -11,10 +11,10 @@
   },
 
   "mysql_cloud": {
-    "host": "bxykka3tqhnadcgiuwta-mysql.services.clever-cloud.com",
+    "host": "bg6k63t1d1amkckwpukv-mysql.services.clever-cloud.com",
     "port": 3306,
-    "user": "uisdjplgkw41udeo",
-    "password": "7JIpvVkcsbGjJhMsRChs",
-    "database": "bxykka3tqhnadcgiuwta"
+    "user": "ujtcexkvsumo3k8e",
+    "password": "XvV9ASkyEMS9egTAxabG",
+    "database": "ujtcexkvsumo3k8e"
   }
 }
