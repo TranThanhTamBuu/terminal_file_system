@@ -1,0 +1,274 @@
+<script>
+  var path_arr = [];
+  var i;
+  var is_break;
+
+  function splitArgs(args) {
+    var split_args = []
+
+    console.log(args.length);
+
+    for (let i = 0; i < args.length; i++) {
+      console.log(args[i]);
+      let spl = args[i].split(" ");
+      split_args = split_args.concat(spl);
+    }
+
+    return split_args;
+  }
+
+  function checkName(name) {
+    var pattern = /^[a-zA-Z0-9 _-]+$/;
+    return pattern.test(name);
+  }
+
+  function setCookie(cname, cvalue, exdays) {
+    var d = new Date();
+    d.setTime(d.getTime() + (exdays * 24 * 60 * 60 * 1000));
+    var expires = "expires=" + d.toUTCString();
+    document.cookie = cname + "=" + cvalue + ";" + expires + ";path=/";
+  }
+
+  function getCookie(cname) {
+    var name = cname + "=";
+    var decodedCookie = decodeURIComponent(document.cookie);
+    var ca = decodedCookie.split(';');
+    for (let i = 0; i < ca.length; i++) {
+      var c = ca[i];
+      while (c.charAt(0) == ' ') {
+        c = c.substring(1);
+      }
+      if (c.indexOf(name) == 0) {
+        return c.substring(name.length, c.length);
+      }
+    }
+    return "";
+  }
+
+  function getPath(args) {
+    if (i >= args.length) {
+      return;
+    }
+
+    console.log("----------------")
+    console.log("args: " + args);
+
+    is_break = false;
+    var path = args[i];
+    i += 1
+
+    if (path.indexOf("root:/") != 0)
+      return;
+
+    for (; i < args.length; i++) {
+      console.log("loop: " + args[i]);
+
+      if (args[i].indexOf("#") != 0
+        && args[i].indexOf("root:/") != 0)
+        path += " " + args[i];
+      else {
+        break;
+      }
+    }
+
+    if (path.length < 6)
+      return;
+
+    path = path.trim();
+    console.log("path: " + path);
+    path_arr.push(path);
+
+    getPath(args)
+  }
+
+  function getData(args) {
+    var data = "";
+
+    if (i >= args.length)
+      return data;
+
+    for (; i < args.length; i++) {
+      if (args[i].indexOf("#") == 0)
+        break
+    }
+
+    for (; i < args.length; i++) {
+      data += args[i] + " ";
+    }
+
+    console.log("data before: " + data);
+
+    if (data.length != 0 && data[0] != "#")
+      return false;
+
+    data = data.trim();
+
+    return data.substring(1);
+  }
+
+  var term = $('body').terminal({
+    cr: function (...args) {
+      args = splitArgs(args);
+      console.log("done: " + args);
+
+      var p;
+      path_arr = [];
+      i = 0;
+
+      const options = $.terminal.parse_options(args);
+      if (options.p) {
+        p = true;
+        options._.unshift(options.p);
+      }
+      else {
+        p = false;
+      }
+
+      console.log(options);
+
+      getPath(options._);
+      console.log(path_arr);
+      console.log(i);
+      i -= 1;
+      var data = getData(options._);
+
+      if (path_arr.length != 1)
+        return "Invalid arguments.";
+
+      console.log("data send: " + data);
+      console.log("path send:" + path_arr);
+
+      return $.getJSON(`/cr?p=${p}&path=${path_arr[0]}&data=${data}`);
+    },
+
+    cat: function (...args) {
+      args = splitArgs(args);
+      console.log("done: " + args);
+
+      path_arr = [];
+      i = 0;
+
+      getPath(args);
+
+      if (path_arr.length != 1)
+        return "Invalid arguments.";
+
+      return $.getJSON(`/cat?path=${path_arr[0]}`);
+    },
+
+    cd: async function (...args) {
+      args = splitArgs(args);
+      console.log("done: " + args);
+
+      var prompt = getCookie("prompt");
+      var result;
+      var tmp;
+      path_arr = [];
+      i = 0;
+      var path = "";
+
+      if (args.length == 1) {
+        if (args[0] == "../") {
+          let cur = prompt.substring(0, prompt.length - 1);
+          let back = cur.substring(0, cur.lastIndexOf("/"))
+
+          if (back == "root:")
+            back = "root:/"
+
+          setCookie("prompt", back + ">", 1);
+          return;
+        }
+
+        if (args[0] == "root:/") {
+          setCookie("prompt", "root:/>", 1);
+          return;
+        }
+      }
+
+      getPath(args);
+      if (path_arr.length > 1)
+        return "Invalid arguments.";
+
+      if (path_arr.length == 1)
+        result = await $.getJSON(`/cd?path=${arr_path[0]}`, function (data) {
+          if (data != true)
+            term.echo(data);
+        });
+
+      if (path_arr.length == 0) {
+        for (let i = 0; i < args.length; i++) {
+          path += args[i] + " ";
+        }
+        path = path.trim();
+
+        if (path.length != 0) {
+          if (!checkName(path))
+            return "Invalid folder name."
+
+          if (prompt.substring(0, prompt.length - 1) == "root:/")
+            path = prompt.substring(0, prompt.length - 1) + path;
+          else
+            path = prompt.substring(0, prompt.length - 1) + "/" + path;
+
+          result = await $.getJSON(`/cd?path=${path}`, function (data) {
+            if (data != true)
+              term.echo(data);
+          });
+          return;
+        }
+      }
+
+      return "Invalid statement."
+    },
+
+    ls: function (...args) {
+      args = splitArgs(args);
+      console.log("done: " + args);
+
+      path_arr = [];
+      i = 0;
+
+      if (args.length == 0)
+        return $.getJSON(`/ls?path=`);
+
+      getPath(args);
+      if (path_arr.length != 1)
+        return "Invalid arguments.";
+
+      var result = $.getJSON(`/ls?path=${path_arr[0]}`, function (data) {
+        term.echo(data);
+      })
+    },
+
+    mv: function (...args) {
+      args = splitArgs(args);
+      console.log("done: " + args);
+
+      path_arr = [];
+      i = 0;
+
+      getPath(args);
+
+      if (path_arr.length != 2)
+        return "Invalid arguments.";
+
+      return $.getJSON(`/mv?from=${path_arr[0]}&to=${path_arr[1]}`);
+    },
+
+    //    test: function (...args) {
+    //      return $.getJSON(`/test`);
+    //    }
+
+
+  }, {
+    checkArity: false,
+    greetings: '[Intern] - Holistics -  Tran Thanh Tam\n',
+    prompt: function () {
+      return $.getJSON(`/prompt`, function (result) {
+        return result;
+      });
+    },
+  });
+
+
+</script>

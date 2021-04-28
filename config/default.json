@@ -1,0 +1,20 @@
+{
+  "mysql": {
+    "host": "localhost",
+    "port": 3306,
+    "user": "root",
+    "password": "",
+    "database": "db_fs",
+    "waitForConnections": true,
+    "connectionLimit": 50,
+    "queueLimit": 0
+  },
+
+  "mysql_cloud": {
+    "host": "bxykka3tqhnadcgiuwta-mysql.services.clever-cloud.com",
+    "port": 3306,
+    "user": "uisdjplgkw41udeo",
+    "password": "7JIpvVkcsbGjJhMsRChs",
+    "database": "bxykka3tqhnadcgiuwta"
+  }
+}
